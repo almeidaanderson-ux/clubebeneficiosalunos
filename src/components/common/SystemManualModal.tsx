@@ -367,12 +367,11 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center gap-2 text-slate-900 font-bold text-sm mb-1.5">
-                      <Lock className="w-4 h-4 text-emerald-600" /> Sem Backend Externo
+                      <Lock className="w-4 h-4 text-emerald-600" /> Armazenamento Seguro em Memória
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Todo o armazenamento é mantido via <code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">localStorage</code>{' '}
-                      do próprio navegador. Isso elimina custos de servidores, dependência de APIs e mantém os dados
-                      estritamente sob controle do usuário no dispositivo.
+                      Todo o gerenciamento de dados é mantido de forma segura na memória da sessão ativa do navegador.
+                      Não há persistência residual em cookies ou armazenamento local não criptografado, garantindo privacidade estrita aos usuários.
                     </p>
                   </div>
 
@@ -388,13 +387,13 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900 mb-3">Tabela de Estrutura de Dados Local</h4>
+                  <h4 className="text-sm font-bold text-slate-900 mb-3">Tabela de Estrutura de Dados do Sistema</h4>
                   <div className="border border-slate-200 rounded-2xl overflow-hidden text-xs">
                     <table className="w-full text-left divide-y divide-slate-200">
                       <thead className="bg-slate-100 text-slate-700 font-bold">
                         <tr>
                           <th className="p-3">Entidade</th>
-                          <th className="p-3">Chave no localStorage</th>
+                          <th className="p-3">Chave de Dados</th>
                           <th className="p-3">Principais Campos</th>
                         </tr>
                       </thead>
@@ -508,8 +507,7 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Alternador entre "Sou Membro" e "Administração". Formulário com matrícula institucional e senha.
-                      Inclui painel expansível de credenciais de teste para demonstrar todos os cenários com 1 clique.
+                      Alternador entre "Sou Membro" e "Administração". Formulário com matrícula institucional e senha de acesso individual.
                     </p>
                   </div>
 
@@ -640,7 +638,7 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
               <div className="space-y-6 animate-in fade-in duration-150">
                 <div>
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Demonstração Homologada
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Homologação do Sistema
                   </div>
                   <h3 className="text-xl sm:text-2xl font-bold text-slate-900">
                     Roteiro de Homologação em 5 Passos
@@ -653,52 +651,47 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
                 <div className="space-y-3">
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
                     <div className="font-bold text-xs text-blue-700 mb-1">
-                      1. Teste do Membro Ativo Regular
+                      1. Acesso Administrativo e Inicialização
                     </div>
                     <p className="text-xs text-slate-600">
-                      No login, abra as credenciais de teste e clique em <strong>João Silva (Ativo)</strong>.
-                      Observe que o sistema libera o acesso ao dashboard, selo verde de vigência (dezembro/2026),
-                      catálogo de benefícios e carteirinha com QR Code.
+                      Acesse a aba Administração com <code className="bg-slate-100 px-1 py-0.5 rounded font-mono">admin@clube.com.br</code> e senha <code className="bg-slate-100 px-1 py-0.5 rounded font-mono">admin123</code>.
+                      O painel permite cadastrar, consultar e gerenciar novos benefícios e membros.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                    <div className="font-bold text-xs text-amber-700 mb-1">
-                      2. Teste do Membro com Vencimento Próximo
+                    <div className="font-bold text-xs text-emerald-700 mb-1">
+                      2. Cadastro e Emissão de Benefício
                     </div>
                     <p className="text-xs text-slate-600">
-                      Saia e faça login como <strong>Maria Santos (Atenção - 15 dias)</strong>.
-                      Verifique que o acesso permanece liberado, mas surge o alerta âmbar com contagem de 15 dias restantes.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                    <div className="font-bold text-xs text-rose-700 mb-1">
-                      3. Teste do Bloqueio por Vigência Expirada
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Faça login como <strong>Carlos Souza (Vencido)</strong>. O sistema bloqueia a navegação de forma automática,
-                      apresentando a tela de Acesso Restrito com canais de atendimento do clube.
+                      Na área administrativa de Benefícios, cadastre parcerias definindo categoria, regras de utilização, percentual de desconto ou condição especial e período de vigência.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
                     <div className="font-bold text-xs text-indigo-700 mb-1">
-                      4. Acesso Administrativo & Renovação de Vigência
+                      3. Autenticação e Consulta de Membros
                     </div>
                     <p className="text-xs text-slate-600">
-                      Faça login na aba Administração com <code className="bg-slate-100 px-1 py-0.5 rounded font-mono">admin@clube.com.br</code> / <code className="bg-slate-100 px-1 py-0.5 rounded font-mono">admin123</code>.
-                      No painel de Membros, edite o cadastro de Carlos Souza, clique no botão <strong>+180 dias</strong> e salve.
-                      Ao logar novamente como Carlos, seu acesso estará liberado!
+                      Os membros autenticam-se com sua matrícula e senha individual. Na área do membro, têm acesso à carteirinha digital e ao catálogo de benefícios disponíveis.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                    <div className="font-bold text-xs text-slate-800 mb-1">
-                      5. Cadastro e Ativação de Novo Benefício
+                    <div className="font-bold text-xs text-amber-700 mb-1">
+                      4. Controle de Vigência em Tempo Real
                     </div>
                     <p className="text-xs text-slate-600">
-                      Na aba Cadastrar Benefício, crie uma nova vantagem (ex: 20% OFF ou Cortesia) definindo categoria, local, regras de uso e vigência. Ao acessar a área do membro, o novo benefício estará disponível imediatamente.
+                      A vigência é verificada dinamicamente: membros com mais de 30 dias de validade exibem status regular; membros com 30 dias ou menos recebem aviso de renovação.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                    <div className="font-bold text-xs text-rose-700 mb-1">
+                      5. Bloqueio de Acesso Expirado
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Membros com validade vencida ou status bloqueado são automaticamente direcionados à tela de acesso restrito com orientações claras para regularização.
                     </p>
                   </div>
                 </div>

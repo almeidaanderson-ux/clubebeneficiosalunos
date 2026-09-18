@@ -152,10 +152,10 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ student, onLogou
           </div>
           <div className="flex-1 min-w-0">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Data de Início & Validade do Acesso
+              Validade da Carteirinha (Derivada da Matrícula)
             </span>
             <span className="text-sm font-semibold text-slate-800 block break-words">
-              Início em {formatDateBR(student.dataInicio)} • Validade até {formatDateBR(student.dataValidade)}
+              Vigência até {formatDateBR(student.dataValidade)} <span className="text-xs font-normal text-slate-500">(Calculada automaticamente do ciclo da matrícula)</span>
             </span>
           </div>
         </div>
@@ -166,11 +166,22 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ student, onLogou
           </div>
           <div className="flex-1 min-w-0">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Status do Cadastro
+              Situação Cadastral & Pagamentos
             </span>
-            <span className="text-sm font-semibold text-slate-800 truncate block">
-              {student.status} ({validity.label})
-            </span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                  validity.isAuthorized
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                Pagamento: {student.situacaoPagamento || 'Em dia'}
+              </span>
+              <span className="text-xs text-slate-600 font-medium">
+                Status: <strong>{student.status}</strong>
+              </span>
+            </div>
           </div>
         </div>
       </div>

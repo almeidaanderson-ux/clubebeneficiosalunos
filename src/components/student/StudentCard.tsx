@@ -61,12 +61,14 @@ export const StudentCard: React.FC<StudentCardProps> = ({ student }) => {
             className={`px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide flex items-center gap-1 shadow-xs ${
               validity.isAuthorized
                 ? 'bg-emerald-500 text-white'
+                : student.situacaoPagamento === 'Atrasado'
+                ? 'bg-amber-500 text-white'
                 : 'bg-rose-500 text-white'
             }`}
           >
             {validity.isAuthorized ? (
               <>
-                <CheckCircle2 className="w-3 h-3" /> ATIVO
+                <CheckCircle2 className="w-3 h-3" /> ATIVO • EM DIA
               </>
             ) : (
               <>
@@ -75,7 +77,7 @@ export const StudentCard: React.FC<StudentCardProps> = ({ student }) => {
             )}
           </span>
           <span className="text-[8px] sm:text-[9px] text-blue-200 mt-1 font-mono tracking-wider">
-            VIGÊNCIA 2026
+            VIGÊNCIA MATRÍCULA
           </span>
         </div>
       </div>
@@ -126,13 +128,26 @@ export const StudentCard: React.FC<StudentCardProps> = ({ student }) => {
               </span>
             </div>
           </div>
+
+          {/* Situação dos Pagamentos */}
+          <div className="mt-1.5 bg-white/10 rounded-xl px-2 py-1 border border-white/10 flex items-center justify-between text-[10px] text-blue-100">
+            <span className="font-medium text-blue-200">Situação:</span>
+            <span className="font-bold text-white flex items-center gap-1">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  validity.isAuthorized ? 'bg-emerald-400' : 'bg-amber-400'
+                }`}
+              />
+              {student.situacaoPagamento || 'Em dia'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Espaço Preparado para Futuro QR Code */}
       <div className="relative z-10 pt-3 sm:pt-4 border-t border-white/15 flex items-center justify-between gap-2 sm:gap-3">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          {/* Moldura demonstrativa preparada para futuro leitor */}
+          {/* Moldura óptica para validação por QR Code */}
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/10 border border-dashed border-white/40 flex items-center justify-center text-white/80 shrink-0">
             <QrCode className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>

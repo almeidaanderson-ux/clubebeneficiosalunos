@@ -1,38 +1,36 @@
 /**
  * storageService
- * Gerenciamento centralizado de persistência no localStorage
- * Garante fallback em memória com total compatibilidade para todos os navegadores,
- * incluindo Safari (modo anônimo), Firefox, Chrome, Edge e WebViews embutidas.
+ * Gerenciamento centralizado de dados em memória durante a sessão ativa.
+ * Nenhuma informação é persistida em localStorage ou cookies do navegador.
  */
 
-const memoryFallback: Record<string, string> = {};
+export const STORAGE_KEYS = {
+  STUDENTS: 'clube_beneficios_membros',
+  BENEFITS: 'clube_beneficios_beneficios',
+  ADMINS: 'clube_beneficios_admins',
+  SESSION: 'clube_beneficios_session',
+};
 
-let storageAvailableChecked = false;
-let storageAvailable = false;
-
-function canUseLocalStorage(): boolean {
-  if (storageAvailableChecked) {
-    return storageAvailable;
-  }
-  try {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      storageAvailable = false;
-    } else {
-      const testKey = '__storage_test_key__';
-      window.localStorage.setItem(testKey, '1');
-      window.localStorage.removeItem(testKey);
-      storageAvailable = true;
-    }
-  } catch {
-    // Safari Modo Privado, políticas de cookies restritas ou sandboxing
-    storageAvailable = false;
-  }
-  storageAvailableChecked = true;
-  return storageAvailable;
-}
+const memoryStore = new Map<string, string>();
 
 type StorageChangeListener = (key: string) => void;
 const changeListeners: Set<StorageChangeListener> = new Set();
+
+// Limpeza de segurança: remove quaisquer dados antigos que tenham ficado no localStorage
+if (typeof window !== 'undefined') {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith('clube_beneficios_')) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+  } catch {
+    // Silencioso em caso de restrições de sandbox
+  }
+}
 
 function notifyKeyChange(key: string) {
   changeListeners.forEach((listener) => {
@@ -46,7 +44,7 @@ function notifyKeyChange(key: string) {
 
 export const storageService = {
   isAvailable(): boolean {
-    return canUseLocalStorage();
+    return true;
   },
 
   onKeyChange(listener: StorageChangeListener): () => void {
@@ -58,63 +56,34 @@ export const storageService = {
 
   getItem<T>(key: string, defaultValue: T): T {
     try {
-      if (!canUseLocalStorage()) {
-        const val = memoryFallback[key];
-        return val !== undefined ? (JSON.parse(val) as T) : defaultValue;
+      const val = memoryStore.get(key);
+      if (val === undefined) {
+        return defaultValue;
       }
-      const item = window.localStorage.getItem(key);
-      if (item === null) {
-        const memoryVal = memoryFallback[key];
-        return memoryVal !== undefined ? (JSON.parse(memoryVal) as T) : defaultValue;
-      }
-      return JSON.parse(item) as T;
+      return JSON.parse(val) as T;
     } catch {
-      const val = memoryFallback[key];
-      return val !== undefined ? (JSON.parse(val) as T) : defaultValue;
+      return defaultValue;
     }
   },
 
   setItem<T>(key: string, value: T): boolean {
-    const serialized = JSON.stringify(value);
-    memoryFallback[key] = serialized;
-
-    let success = true;
-    if (canUseLocalStorage()) {
-      try {
-        window.localStorage.setItem(key, serialized);
-      } catch {
-        success = false;
-      }
+    try {
+      const serialized = JSON.stringify(value);
+      memoryStore.set(key, serialized);
+      notifyKeyChange(key);
+      return true;
+    } catch {
+      return false;
     }
-
-    notifyKeyChange(key);
-    return success;
   },
 
   removeItem(key: string): void {
-    delete memoryFallback[key];
-    if (canUseLocalStorage()) {
-      try {
-        window.localStorage.removeItem(key);
-      } catch {
-        // Ignora silenciosamente erros em ambientes restritos
-      }
-    }
+    memoryStore.delete(key);
     notifyKeyChange(key);
   },
 
   clear(): void {
-    for (const k of Object.keys(memoryFallback)) {
-      delete memoryFallback[k];
-    }
-    if (canUseLocalStorage()) {
-      try {
-        window.localStorage.clear();
-      } catch {
-        // Ignora silenciosamente erros em ambientes restritos
-      }
-    }
+    memoryStore.clear();
     notifyKeyChange('*');
   },
 };
-

@@ -1,5 +1,17 @@
 export type StudentStatus = 'Ativo' | 'Inativo' | 'Inadimplente' | 'Bloqueado' | 'Vencido';
 
+export type PaymentStatus = 'Em dia' | 'Atrasado' | 'Pendente' | 'Isento';
+
+export interface PaymentRecord {
+  id: string;
+  competencia: string; // Ex: "09/2026"
+  vencimento: string; // YYYY-MM-DD
+  valor: number; // Ex: 39.90
+  status: 'Pago' | 'Pendente' | 'Atrasado';
+  dataPagamento?: string; // YYYY-MM-DD
+  formaPagamento?: string; // "PIX", "Boleto", "Cartão", etc.
+}
+
 export interface Student {
   id: string;
   nome: string;
@@ -10,8 +22,10 @@ export interface Student {
   instituicao: string;
   curso: string;
   dataInicio: string; // YYYY-MM-DD
-  dataValidade: string; // YYYY-MM-DD
-  status: StudentStatus;
+  dataValidade: string; // YYYY-MM-DD (derivada da matrícula)
+  status: StudentStatus; // Situação cadastral (derivada dos pagamentos e da matrícula)
+  situacaoPagamento: PaymentStatus; // Situação financeira/pagamento
+  historicoPagamentos?: PaymentRecord[];
   fotoUrl?: string;
   dataCriacao: string;
   dataAtualizacao: string;
@@ -55,6 +69,15 @@ export interface AuthSession {
 
 export type ValidityStatusLevel = 'normal' | 'attention_medium' | 'attention_urgent' | 'expired';
 
+export interface MemberAccessState {
+  isAuthorized: boolean;
+  status: StudentStatus;
+  situacaoPagamento: PaymentStatus;
+  statusTitle: string;
+  badgeColor: string;
+  detailedExplanation: string;
+}
+
 export interface ValidityEvaluation {
   isAuthorized: boolean;
   isExpired: boolean;
@@ -63,4 +86,5 @@ export interface ValidityEvaluation {
   label: string;
   detailedMessage: string;
   status: StudentStatus;
+  situacaoPagamento?: PaymentStatus;
 }

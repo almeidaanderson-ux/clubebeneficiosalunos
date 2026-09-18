@@ -1,8 +1,6 @@
 import { Benefit } from '../types';
 import { getTodayString, parseLocalDate } from '../utils/dateUtils';
-import { firestoreSyncService } from './firestoreSyncService';
-import { STORAGE_KEYS, seedService } from './seedService';
-import { storageService } from './storageService';
+import { STORAGE_KEYS, storageService } from './storageService';
 
 export interface BenefitFormData {
   categoria?: string;
@@ -22,7 +20,6 @@ export interface BenefitFormData {
 
 export const benefitService = {
   getAll(): Benefit[] {
-    seedService.initializeIfNeeded();
     return storageService.getItem<Benefit[]>(STORAGE_KEYS.BENEFITS, []);
   },
 
@@ -56,7 +53,6 @@ export const benefitService = {
   },
 
   create(data: BenefitFormData): { success: boolean; error?: string; benefit?: Benefit } {
-    seedService.initializeIfNeeded();
     const list = this.getAll();
 
     if (!data.titulo?.trim()) {
@@ -94,7 +90,6 @@ export const benefitService = {
 
     list.unshift(newBenefit);
     storageService.setItem<Benefit[]>(STORAGE_KEYS.BENEFITS, list);
-    firestoreSyncService.saveBenefit(newBenefit);
     return { success: true, benefit: newBenefit };
   },
 
@@ -139,7 +134,6 @@ export const benefitService = {
 
     list[index] = updatedBenefit;
     storageService.setItem<Benefit[]>(STORAGE_KEYS.BENEFITS, list);
-    firestoreSyncService.saveBenefit(updatedBenefit);
     return { success: true, benefit: updatedBenefit };
   },
 
@@ -165,7 +159,6 @@ export const benefitService = {
     const filtered = list.filter((b) => String(b.id).trim() !== cleanId);
     if (filtered.length === list.length) return false;
     storageService.setItem<Benefit[]>(STORAGE_KEYS.BENEFITS, filtered);
-    firestoreSyncService.deleteBenefit(cleanId);
     return true;
   },
 

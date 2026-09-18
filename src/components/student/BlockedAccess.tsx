@@ -7,11 +7,13 @@ import {
   LogOut,
   Mail,
   Phone,
+  Server,
   ShieldAlert,
   User,
 } from 'lucide-react';
+import { studentService } from '../../services/studentService';
 import { Student } from '../../types';
-import { evaluateStudentValidity, formatDateBR } from '../../utils/dateUtils';
+import { formatDateBR } from '../../utils/dateUtils';
 import { StudentCard } from './StudentCard';
 
 interface BlockedAccessProps {
@@ -21,36 +23,10 @@ interface BlockedAccessProps {
 
 export const BlockedAccess: React.FC<BlockedAccessProps> = ({ student, onLogout }) => {
   const [showCardModal, setShowCardModal] = useState(false);
-  const validity = evaluateStudentValidity(student);
 
-  // Determinar mensagem e título específico por status
-  let statusTitle = 'Acesso Temporariamente Indisponível';
-  let statusBadgeColor = 'bg-amber-100 text-amber-900 border-amber-200';
-  let detailedExplanation = validity.detailedMessage;
-
-  if (student.status === 'Vencido' || validity.isExpired) {
-    statusTitle = 'Período de Acesso Vencido';
-    statusBadgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
-    detailedExplanation =
-      'A data de validade do seu benefício expirou em ' +
-      formatDateBR(student.dataValidade) +
-      '. É necessário renovar o vínculo para reativar o Clube de Benefícios.';
-  } else if (student.status === 'Inadimplente') {
-    statusTitle = 'Situação Cadastral ou Financeira Pendente';
-    statusBadgeColor = 'bg-purple-100 text-purple-800 border-purple-200';
-    detailedExplanation =
-      'Identificamos uma pendência cadastral ou financeira ativa em seu registro. Regularize sua situação junto à administração para liberar as vantagens.';
-  } else if (student.status === 'Inativo') {
-    statusTitle = 'Cadastro de Membro Inativo';
-    statusBadgeColor = 'bg-slate-200 text-slate-800 border-slate-300';
-    detailedExplanation =
-      'Seu registro consta como inativo no clube. Em caso de dúvidas, procure a central de atendimento.';
-  } else if (student.status === 'Bloqueado') {
-    statusTitle = 'Acesso Bloqueado pela Administração';
-    statusBadgeColor = 'bg-red-100 text-red-900 border-red-200';
-    detailedExplanation =
-      'Seu acesso foi preventivamente bloqueado. Para verificar o motivo e solicitar o desbloqueio, entre em contato com a administração do clube.';
-  }
+  // A tela de bloqueio reage estritamente ao estado recebido da API
+  // e não a datas digitadas ou cálculos manuais de validade.
+  const accessState = studentService.getAccessState(student);
 
   return (
     <div className="max-w-lg mx-auto py-8 px-4 sm:px-0">
@@ -60,27 +36,35 @@ export const BlockedAccess: React.FC<BlockedAccessProps> = ({ student, onLogout 
           <ShieldAlert className="w-8 h-8" />
         </div>
 
-        {/* Status Badge */}
+        {/* Indicador do Estado Recebido da API */}
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+            <Server className="w-3.5 h-3.5 text-blue-500" />
+            Estado Recebido da API
+          </span>
+        </div>
+
+        {/* Status Badge derivado da API */}
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border mb-3 ${statusBadgeColor}`}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border mb-3 shadow-2xs ${accessState.badgeColor}`}
         >
           <AlertOctagon className="w-3.5 h-3.5" />
-          Status: {student.status.toUpperCase()}
+          {accessState.status.toUpperCase()}
         </span>
 
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-          {statusTitle}
+          {accessState.statusTitle}
         </h1>
 
-        {/* Mensagem oficial de indisponibilidade */}
+        {/* Mensagem oficial de indisponibilidade baseada no estado da API */}
         <div className="mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-left text-xs sm:text-sm text-amber-950 leading-relaxed space-y-2">
           <p className="font-semibold text-amber-900">
             “Seu acesso aos benefícios está temporariamente indisponível. Para regularizar sua situação, entre em contato com a administração do clube.”
           </p>
-          <p className="text-xs text-amber-800/90">{detailedExplanation}</p>
+          <p className="text-xs text-amber-800/90">{accessState.detailedExplanation}</p>
         </div>
 
-        {/* Resumo do Membro */}
+        {/* Resumo do Membro e Dados da API */}
         <div className="mt-6 bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left text-xs space-y-2">
           <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
             <span className="text-slate-500 font-medium">Titular:</span>
@@ -94,10 +78,22 @@ export const BlockedAccess: React.FC<BlockedAccessProps> = ({ student, onLogout 
             <span className="text-slate-500 font-medium">Organização:</span>
             <span className="font-semibold text-slate-800">{student.instituicao}</span>
           </div>
-          <div className="flex justify-between items-center py-1">
-            <span className="text-slate-500 font-medium">Validade cadastrada:</span>
+          <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+            <span className="text-slate-500 font-medium">Estado da Conta (API):</span>
             <span className="font-bold text-rose-600">
-              {formatDateBR(student.dataValidade)} ({validity.label})
+              {student.status}
+            </span>
+          </div>
+          <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+            <span className="text-slate-500 font-medium">Situação dos Pagamentos:</span>
+            <span className="font-bold text-amber-700">
+              {student.situacaoPagamento || 'Pendente'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center py-1">
+            <span className="text-slate-500 font-medium">Vigência da Matrícula (Comprobatório):</span>
+            <span className="font-semibold text-slate-700 font-mono">
+              {formatDateBR(student.dataValidade)}
             </span>
           </div>
         </div>

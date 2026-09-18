@@ -1,18 +1,20 @@
 import { AdminUser, AuthSession, Student } from '../types';
-import { STORAGE_KEYS, seedService } from './seedService';
-import { storageService } from './storageService';
+import { STORAGE_KEYS, storageService } from './storageService';
 import { studentService } from './studentService';
 
-/**
- * AVISO ARQUITETURAL:
- * Esta camada de autenticação é exclusiva para demonstração no MVP local (armazenada em localStorage).
- * Não substitui um backend seguro com hash de senhas (bcrypt/argon2), tokens JWT/sessão HTTP-only,
- * proteção contra CSRF/XSS e auditoria real de acessos.
- */
+export const INITIAL_ADMINS: AdminUser[] = [
+  {
+    id: 'admin-1',
+    nome: 'Administração Geral do Clube',
+    email: 'admin@clube.com.br',
+    senha: 'admin123',
+    perfil: 'admin',
+    status: 'Ativo',
+  },
+];
 
 export const authService = {
   loginStudent(matricula: string, senha: string): { success: boolean; error?: string; session?: AuthSession } {
-    seedService.initializeIfNeeded();
     if (!matricula?.trim() || !senha?.trim()) {
       return { success: false, error: 'Por favor, preencha sua matrícula e senha de acesso.' };
     }
@@ -38,7 +40,6 @@ export const authService = {
   },
 
   loginAdmin(email: string, senha: string): { success: boolean; error?: string; session?: AuthSession } {
-    seedService.initializeIfNeeded();
     if (!email?.trim() || !senha?.trim()) {
       return { success: false, error: 'Por favor, informe seu e-mail e senha de administrador.' };
     }
@@ -48,46 +49,20 @@ export const authService = {
 
     let admins = storageService.getItem<AdminUser[]>(STORAGE_KEYS.ADMINS, []);
 
-    // Se a lista estiver vazia ou não tiver os administradores padrão, reinserir
     if (admins.length === 0) {
-      admins = [
-        {
-          id: 'admin-1',
-          nome: 'Administração Geral do Clube',
-          email: 'admin@clube.com.br',
-          senha: 'admin123',
-          perfil: 'admin',
-          status: 'Ativo',
-        },
-        {
-          id: 'admin-2',
-          nome: 'Administrador do Sistema',
-          email: 'admin@demo.com',
-          senha: 'admin123',
-          perfil: 'admin',
-          status: 'Ativo',
-        },
-      ];
+      admins = [...INITIAL_ADMINS];
       storageService.setItem<AdminUser[]>(STORAGE_KEYS.ADMINS, admins);
     }
 
     let admin = admins.find(
-      (a) =>
-        a.email.trim().toLowerCase() === emailClean ||
-        (emailClean === 'admin' && a.email.includes('admin'))
+      (a) => a.email.trim().toLowerCase() === emailClean
     );
 
-    // Suporte direto para as contas administrativas de demonstração
-    if (
-      !admin &&
-      (emailClean === 'admin@clube.com.br' ||
-        emailClean === 'admin@demo.com' ||
-        emailClean === 'admin')
-    ) {
+    if (!admin && emailClean === 'admin@clube.com.br') {
       admin = {
         id: 'admin-1',
         nome: 'Administração Geral do Clube',
-        email: emailClean.includes('@') ? emailClean : 'admin@clube.com.br',
+        email: 'admin@clube.com.br',
         senha: 'admin123',
         perfil: 'admin',
         status: 'Ativo',
@@ -100,10 +75,7 @@ export const authService = {
       return { success: false, error: 'E-mail administrativo não cadastrado.' };
     }
 
-    // Aceita a senha cadastrada ou variações comuns de demonstração (admin123 / admin)
-    const isPasswordValid =
-      admin.senha === senhaClean ||
-      (admin.senha === 'admin123' && (senhaClean === 'admin123' || senhaClean === 'admin'));
+    const isPasswordValid = admin.senha === senhaClean;
 
     if (!isPasswordValid) {
       return { success: false, error: 'Senha de administrador incorreta.' };
@@ -124,7 +96,6 @@ export const authService = {
   },
 
   getCurrentSession(): AuthSession | null {
-    seedService.initializeIfNeeded();
     const session = storageService.getItem<AuthSession | null>(STORAGE_KEYS.SESSION, null);
     if (!session || !session.user) return null;
 

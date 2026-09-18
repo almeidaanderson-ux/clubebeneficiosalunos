@@ -8,8 +8,6 @@ import { StudentCard } from './components/student/StudentCard';
 import { StudentHome } from './components/student/StudentHome';
 import { StudentProfile } from './components/student/StudentProfile';
 import { authService } from './services/authService';
-import { firestoreSyncService } from './services/firestoreSyncService';
-import { seedService } from './services/seedService';
 import { studentService } from './services/studentService';
 import { AdminUser, AuthSession, Student } from './types';
 import { evaluateStudentValidity } from './utils/dateUtils';
@@ -24,10 +22,8 @@ export default function App() {
   // Navegação de Admin: Foco direto em Benefícios e Carteirinha Digital
   const [adminTab, setAdminTab] = useState<AdminTab>('beneficios');
 
-  // Inicialização e Sincronização em Nuvem (Firestore + Local)
+  // Inicialização da sessão
   useEffect(() => {
-    seedService.initializeIfNeeded();
-    firestoreSyncService.init();
     const session = authService.getCurrentSession();
     setCurrentSession(session);
     setLoading(false);
@@ -68,7 +64,8 @@ export default function App() {
   // 2. Área do Membro
   if (currentSession.role === 'membro') {
     const student = studentService.getById(currentSession.user.id) || (currentSession.user as Student);
-    const validity = evaluateStudentValidity(student);
+    // A tela de bloqueio deixa de reagir a datas digitadas e passa a reagir ao estado recebido da API
+    const accessState = studentService.getAccessState(student);
 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between text-slate-900 selection:bg-blue-600 selection:text-white">
@@ -83,8 +80,8 @@ export default function App() {
 
           {/* Conteúdo Principal */}
           <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-28 md:pb-12">
-            {!validity.isAuthorized ? (
-              // Tela de Bloqueio Respeitosa
+            {!accessState.isAuthorized ? (
+              // Tela de Bloqueio Respeitosa reagindo ao estado da API
               <BlockedAccess student={student} onLogout={handleLogout} />
             ) : (
               // Abas do Membro Ativo
@@ -106,8 +103,8 @@ export default function App() {
           </main>
         </div>
 
-        {/* Barra de Navegação Inferior (Mobile - apenas para membros com acesso liberado) */}
-        {validity.isAuthorized && (
+        {/* Barra de Navegação Inferior (Mobile - apenas para membros com acesso liberado na API) */}
+        {accessState.isAuthorized && (
           <StudentBottomNav
             activeTab={studentTab}
             onChangeTab={setStudentTab}
@@ -158,7 +155,7 @@ export default function App() {
           <span>
             Painel Administrativo • <strong>Clube de Benefícios</strong>
           </span>
-          <span>Dados salvos em localStorage • Modo Demonstração</span>
+          <span>Sessão Segura • Clube de Benefícios</span>
         </div>
       </footer>
     </div>

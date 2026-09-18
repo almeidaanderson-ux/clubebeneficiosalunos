@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { benefitService, BenefitFormData } from '../../services/benefitService';
-import { firestoreSyncService } from '../../services/firestoreSyncService';
+import { STORAGE_KEYS, storageService } from '../../services/storageService';
 import { Benefit } from '../../types';
 import { addDaysToStringDate, formatDateBR, getTodayString } from '../../utils/dateUtils';
 import { ConfirmModal } from '../common/ConfirmModal';
@@ -45,8 +45,10 @@ export const AdminBenefits: React.FC<AdminBenefitsProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
 
   useEffect(() => {
-    const unsubscribe = firestoreSyncService.subscribe(() => {
-      setBenefitsList(benefitService.getAll());
+    const unsubscribe = storageService.onKeyChange((key) => {
+      if (key === STORAGE_KEYS.BENEFITS || key === '*') {
+        setBenefitsList(benefitService.getAll());
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -265,7 +267,26 @@ export const AdminBenefits: React.FC<AdminBenefitsProps> = ({
       </div>
 
       {/* Lista / Tabela Responsiva */}
-      {filteredBenefits.length === 0 ? (
+      {benefitsList.length === 0 ? (
+        <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
+            <Tag className="w-6 h-6" />
+          </div>
+          <h4 className="text-sm font-bold text-slate-800">Nenhum benefício cadastrado ainda</h4>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Cadastre as primeiras parcerias e vantagens comerciais do clube para que os membros possam usufruir.
+          </p>
+          <div className="pt-2">
+            <button
+              onClick={openCreateModal}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Cadastrar Primeiro Benefício
+            </button>
+          </div>
+        </div>
+      ) : filteredBenefits.length === 0 ? (
         <div className="bg-white rounded-3xl p-8 border border-slate-200 text-center text-xs text-slate-500">
           Nenhum benefício encontrado para os filtros selecionados.
         </div>
